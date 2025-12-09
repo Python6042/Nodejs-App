@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 env:
   IMAGE_NAME: examplenode-dev
   
@@ -20,7 +21,19 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         
-    - name: Build and push
+    - name: Build Docker Image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: false
+        tags: 254879/${{ env.IMAGE_NAME }}:latest
+
+    - name: Scan Docker Image for Vulnerabilities
+      uses: aquasecurity/trivy-action@v0.11.0
+      with:
+        image-ref: 254879/${{ env.IMAGE_NAME }}:latest
+
+    - name: Push Docker Image to DockerHub
       uses: docker/build-push-action@v2
       with:
         context: .
